@@ -1,0 +1,40 @@
+.kbj__main {
+
+}
+
+.kbj__row {
+    
+}
+
+.kbj__key {
+
+}
+
+.kbj__key.kbj__key-alt > .kbj__key_focus {
+    display: block;
+}
+
+.kbj__key.kbj__key-alt > * {
+    display: none
+}
+
+.kbj__key > .kbj__key__main {
+
+}
+
+.kbj__key > .kbj__key__alt-0 {
+
+}
+
+.kbj__key > .kbj__key__alt-1 {
+
+}
+
+.kbj__key > .kbj__key__alt-2 {
+    
+}
+
+.kbj__key > .kbj__key__alt-3 {
+    
+}
+
