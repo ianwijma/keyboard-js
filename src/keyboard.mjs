@@ -93,6 +93,9 @@ const renderStateKeyElement = ({ key: stateKey, state }) => {
         element.addEventListener('mouseup', () => {
             updateState(name, false);
         })
+        element.addEventListener('mouseout', () => {
+            updateState(name, false);
+        })
     }
 
 

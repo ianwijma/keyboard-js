@@ -1,13 +1,17 @@
+* {
+    --kbj-alt-key-spacing: 2px;
+}
+
 .kbj__main {
     display: grid;
 }
 
-.kbj__row {
-    
-}
-
 .kbj__key {
-
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
 }
 
 .kbj__key.kbj__key-alt > .kbj__key_focus {
@@ -15,26 +19,30 @@
 }
 
 .kbj__key.kbj__key-alt > * {
-    display: none
+    display: none;
 }
 
-.kbj__key > .kbj__key__main {
-
+.kbj__key > :not(.kbj__key__main) {
+    position: absolute;
 }
 
 .kbj__key > .kbj__key__alt-0 {
-
+    top: var(--kbj-alt-key-spacing);
+    left: var(--kbj-alt-key-spacing);
 }
 
 .kbj__key > .kbj__key__alt-1 {
-
+    top: var(--kbj-alt-key-spacing);
+    right: var(--kbj-alt-key-spacing);
 }
 
 .kbj__key > .kbj__key__alt-2 {
-    
+    bottom: var(--kbj-alt-key-spacing);
+    right: var(--kbj-alt-key-spacing);
 }
 
 .kbj__key > .kbj__key__alt-3 {
-    
+    bottom: var(--kbj-alt-key-spacing);
+    left: var(--kbj-alt-key-spacing);
 }
 
