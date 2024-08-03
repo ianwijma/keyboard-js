@@ -14,7 +14,7 @@
 
         const keyboard = createKeyboard();
 
-        keyboard.onClick(({ code, state }) => console.log(`Key ${code} pressed with state:`, state))
+        keyboard.addClickListener(({ code, state }) => console.log(`Key ${code} pressed with state:`, state))
     </script>
 </body>
 </html>

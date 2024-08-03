@@ -4,7 +4,7 @@ const generateId = () => {
     return [s4()+s4(), s4(), s4(), s4(), s4()+s4()+s4()].join('-');
 }
 
-export const getKey = (code, { text = null, state = [], altKeys = [], width = 1 } = {}) => ({
+export const getKey = (code, { text = null, state = [], altKeys = [], width = 1, areaName = null } = {}) => ({
     type: 'key',
     id: generateId(),
     code,
@@ -12,6 +12,7 @@ export const getKey = (code, { text = null, state = [], altKeys = [], width = 1 
     state,
     altKeys,
     width,
+    areaName: areaName ?? code
 })
 
 export const getStateKey = (name, { key = null, toggle = false } = {}) => ({

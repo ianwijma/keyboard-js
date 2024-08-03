@@ -1,20 +1,18 @@
 import { defaultLayout } from "./layouts/default-layout.mjs";
 
-const renderRow = () => {
-    const element = document.createElement('div');
-    
-    element.classList.add('kbj__row');
-    
-    return element;
+const encode = (code) => {
+    const encoded = encodeURIComponent(code);
+    return encoded.replace('%', 'percentage')
 }
 
 const renderBaseKeyElement = ({ key }) => {
-    const { code } = key;
+    const { areaName } = key;
 
     const element = document.createElement('button');
 
     element.classList.add('kbj__key');
-    element.classList.add(`kbj__key__key--${code}`);
+    element.classList.add(`kbj__key__key--${areaName}`);
+    element.style.gridArea = areaName;
 
     return element;
 }
@@ -121,7 +119,7 @@ const renderKey = ({ key, state }) => {
 const getState = ({ layout }) => {
     const KEY_PRESSED = 'key-pressed'
     const STATE_CHANGE = 'state-changed'
-    const bus = new Comment();
+    const bus = new Comment('keyboard-state');
 
     const state = {};
 
@@ -152,19 +150,68 @@ const getState = ({ layout }) => {
     }
 }
 
+const getKeyboardRows = ({ layout }) => {
+    return `repeat(${layout.length}, 1fr)`
+}
+const getKeyboardColumns = ({ layout }) => {
+    const columns = [];
+
+    layout.forEach(row => {
+        let rowColumn = 0;
+        
+        row.forEach(key => {
+            let {width} = key;
+            if (!width) width = key.key.width;
+
+            rowColumn += width;
+        })
+
+        columns.push(rowColumn);
+    });
+
+    const uniqueColumns = [...new Set(columns)];
+    if (uniqueColumns.length !== 1) {
+        console.error(`We have uneven columns, which fails to create the keyboard styling: `, columns);
+    }
+
+    return `repeat(${columns[0]}, 1fr)`
+
+}
+const getKeyboardAreas = ({ layout }) => {
+    const areas = [];
+
+    layout.forEach(row => {
+        let line = [];
+        
+        row.forEach(key => {
+            let {width, areaName} = key;
+            if (!width) width = key.key.width;
+            if (!areaName) areaName = key.key.areaName;
+
+            for (let index = 0; index < width; index++) {
+                line.push(areaName);
+            }
+        })
+
+
+        areas.push(`"${line.join(' ')}"`)
+    })
+
+    return areas.join(` `);
+}
+
 const renderKeyboard = ({ layout, state }) => {
     const keyboardElement = document.createElement('div');
     keyboardElement.classList.add('kbj__main');
+    keyboardElement.style.gridTemplateRows = getKeyboardRows({ layout });
+    keyboardElement.style.gridTemplateColumns = getKeyboardColumns({ layout });
+    keyboardElement.style.gridTemplateAreas = getKeyboardAreas({ layout });
 
     layout.forEach(row => {
-        const rowElement = renderRow();
-
         row.forEach(key => {
             const keyElement = renderKey({ key, state });
-            rowElement.append(keyElement);
+            keyboardElement.append(keyElement);
         })
-
-        keyboardElement.append(rowElement);
     })
 
     return keyboardElement;
@@ -181,7 +228,7 @@ const validateLayout = ({ layout }) => {
             }
 
             if (codes.includes(code)) {
-                console.warn(`This keyboard contains a duplicate key: ${code}`);
+                console.error(`This keyboard contains a duplicate key: ${code}`);
             }
         })
     })
@@ -191,25 +238,44 @@ export const createKeyboard = ({ layout = null, parentElement = null } = {}) => 
     layout = layout ?? defaultLayout();
     parentElement = parentElement ?? document.body;
 
-    // Validate the layout: No duplicate keys
-    validateLayout({ layout });
+    const PROXY_EVENT = 'proxy-event';
+    const keyboardBus = new Comment('keyboard-proxy');
 
-    // Create keyboard state using the layout state keys;
-    const state = getState({ layout });
+    const forwardEvent = (callback) => ({ detail }) => {
+        const { code, state } = detail;
+        callback({ code, state })
+    }
 
-    // Construct the keyboards state
-    const keyboardElement = renderKeyboard({ layout, state });
+    const addClickListener = (callback) => keyboardBus.addEventListener(PROXY_EVENT, forwardEvent(callback));
+    const removeClickListener = (callback) => keyboardBus.removeEventListener(PROXY_EVENT, forwardEvent(callback));
 
-    // Setup the keyboard initial state
-    state.setupState();
+    const updateLayout = ({ layout }) => {
+        // Validate the layout: No duplicate keys
+        validateLayout({ layout });
 
-    // render the keyboard to the page.
-    parentElement.append(keyboardElement);
+        // Create keyboard state using the layout state keys;
+        const state = getState({ layout });
 
-    // Forward key presses
-    const onClick = (callback) => state.listenKey(({ code, state }) => callback({ code, state }));
+        // Construct the keyboards state
+        const keyboardElement = renderKeyboard({ layout, state });
+
+        // Setup the keyboard initial state
+        state.setupState();
+
+        // render the keyboard to the page.
+        parentElement.append(keyboardElement);
+
+
+        state.listenKey(({code, state}) => keyboardBus.dispatchEvent(new CustomEvent(PROXY_EVENT, {
+            detail: { code, state }
+        })));        
+    }
+
+    updateLayout({ layout })
 
     return {
-        onClick,
+        addClickListener,
+        removeClickListener,
+        updateLayout,
     }
 };
