@@ -22,3 +22,11 @@ export const getStateKey = (name, { key = null, toggle = false } = {}) => ({
     key: key ?? k(name),
     toggle,
 });
+
+let blankSpaceIndex = 0;
+export const getBlankSpace = ({ width = 1 } = {}) => ({
+    type: 'blank-space',
+    id: generateId(),
+    width,
+    areaName: `blank-space-${blankSpaceIndex++}`
+})

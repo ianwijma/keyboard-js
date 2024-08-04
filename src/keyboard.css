@@ -14,6 +14,10 @@
     position: relative;
 }
 
+.kbj__blank-space {
+    height: 50px;
+}
+
 .kbj__key.kbj__key-alt > .kbj__key_focus {
     display: block;
 }

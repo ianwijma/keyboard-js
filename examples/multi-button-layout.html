@@ -13,7 +13,7 @@
         import { createKeyboard } from '../src/keyboard.mjs';
         import { multiButtonLayout } from '../src/layouts/multi-button-layout.mjs';
 
-        const keyboard = createKeyboard();
+        const keyboard = createKeyboard({ layout: multiButtonLayout() });
 
         keyboard.addClickListener(({ code, state }) => console.log(`Key ${code} pressed with state:`, state))
     </script>

@@ -1,8 +1,14 @@
 import { defaultLayout } from "./layouts/default-layout.mjs";
 
-const encode = (code) => {
-    const encoded = encodeURIComponent(code);
-    return encoded.replace('%', 'percentage')
+const renderBlankSpace = ({ key }) => {
+    const { areaName } = key;
+
+    const element = document.createElement('div');
+
+    element.classList.add('kbj__blank-space');
+    element.style.gridArea = areaName;
+
+    return element
 }
 
 const renderBaseKeyElement = ({ key }) => {
@@ -31,38 +37,38 @@ const renderKeyElement = ({ key, state }) => {
     main.innerText = text;
     element.append(main);
 
-    altKeys.forEach((altKey, index) => {
-        const { code: altCode, text: altText, state: altState } = altKey
+    let allAltStates = [];
 
-        const alt = document.createElement('div');
-        alt.classList.add(`kbj__key__alt-${index}`);
-        alt.innerText = altText;
-        element.append(alt);
-
-
-        const setFocus = () => {
-            element.classList.add('kbj__key-alt');
-            alt.classList.add('kbj__key_focus');
-            currentCode = altCode;
-        }
-
-        const resetFocus = () => {
-            element.classList.remove('kbj__key-alt');
-            alt.classList.remove('kbj__key_focus')
-            currentCode = code;
-        }
-
+    const handleStateChange = ({ altKey, altElement }) => {
+        const { code: altCode, state: altState } = altKey;
         const stateNames = altState.map(item => item.name);
-        const handleStateChange = ({ state }) => {
+        allAltStates = [...allAltStates, ...stateNames]
+
+        return ({ state }) => {
             const hasActiveState = stateNames.some((name => state[name]));
+            const anyActiveState = allAltStates.some((name => state[name]));
             if (hasActiveState) {
-                setFocus();
-            } else {
-                resetFocus()
+                element.classList.add('kbj__key-alt');
+                altElement.classList.add('kbj__key_focus');
+                currentCode = altCode;
+            } else if (!anyActiveState) {
+                element.classList.remove('kbj__key-alt');
+                altElement.classList.remove('kbj__key_focus')
+                currentCode = code;
             }
         }
+    }
 
-        listenState(handleStateChange);
+
+    altKeys.forEach((altKey, index) => {
+        const { text: altText } = altKey
+
+        const altElement = document.createElement('div');
+        altElement.classList.add(`kbj__key__alt-${index}`);
+        altElement.innerText = altText;
+        element.append(altElement);
+
+        listenState(handleStateChange({ altKey, altElement }));
     })
 
     return element
@@ -112,6 +118,8 @@ const renderKey = ({ key, state }) => {
             return renderKeyElement({ key, state });
         case 'state':
             return renderStateKeyElement({key, state});
+        case 'blank-space':
+            return renderBlankSpace({ key });
         default: 
             console.error(`Unknown key type: ${type}`);
             return renderKeyElement(key);
@@ -225,8 +233,8 @@ const validateLayout = ({ layout }) => {
 
     layout.forEach(row => {
         row.forEach(key => {
-            let code = key.code;
-            if (!code) {
+            let { type, code } = key;
+            if (type === 'state') {
                 code = key.key.code;
             }
 
